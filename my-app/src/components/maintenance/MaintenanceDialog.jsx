@@ -24,7 +24,15 @@ export default function MaintenanceDialog({ open, onOpenChange, maintenance, veh
 
   useEffect(() => {
     if (maintenance) {
-      setFormData(maintenance);
+      // Si es edición, convierte las fechas del backend al formato del input
+      const serviceDate = maintenance.service_date ? new Date(maintenance.service_date).toISOString().split('T')[0] : '';
+      const nextServiceDate = maintenance.next_service_date ? new Date(maintenance.next_service_date).toISOString().split('T')[0] : '';
+      
+      setFormData({
+        ...maintenance,
+        service_date: serviceDate,
+        next_service_date: nextServiceDate
+      });
     } else {
       setFormData({
         vehicle_id: '',
@@ -44,25 +52,67 @@ export default function MaintenanceDialog({ open, onOpenChange, maintenance, veh
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     // Validación simple
     if (!formData.vehicle_id || !formData.service_date || !formData.description) {
-      alert('Completa los campos requeridos: Vehículo, Fecha de Servicio y Descripción.');  // O usa toast
+      alert('Completa los campos requeridos: Vehículo, Fecha de Servicio y Descripción.');
       return;
     }
 
+    // Prepara los datos para enviar al backend
     let dataToSave = { ...formData };
-    // Forza id para edit
+    
+    // Si es edición, incluye el id
     if (maintenance && maintenance.id) {
       dataToSave.id = maintenance.id;
     }
-    // Parsea tipos
-    dataToSave.vehicle_id = parseInt(dataToSave.vehicle_id) || 0;
-    if (dataToSave.cost) dataToSave.cost = parseFloat(dataToSave.cost) || 0;
-    if (dataToSave.mileage_at_service) dataToSave.mileage_at_service = parseFloat(dataToSave.mileage_at_service) || 0;
-    if (!dataToSave.next_service_date) delete dataToSave.next_service_date;
 
-    console.log('Enviando dataToSave:', dataToSave);  // Debug: Ve en console
-    onSave(dataToSave);
+    // CLAVE: Convierte las fechas al formato ISO completo que espera el backend
+    if (dataToSave.service_date) {
+      dataToSave.service_date = new Date(dataToSave.service_date + 'T00:00:00').toISOString();
+    }
+    
+    if (dataToSave.next_service_date) {
+      dataToSave.next_service_date = new Date(dataToSave.next_service_date + 'T00:00:00').toISOString();
+    } else {
+      delete dataToSave.next_service_date;
+    }
+
+    // Mapea los nombres de campos del frontend al backend
+    const backendData = {
+      id: dataToSave.id,
+      vehicleId: parseInt(dataToSave.vehicle_id) || 0,
+      maintenanceType: mapMaintenanceType(dataToSave.maintenance_type),
+      serviceDate: dataToSave.service_date,
+      nextServiceDate: dataToSave.next_service_date,
+      description: dataToSave.description || '',
+      partsReplaced: dataToSave.parts_replaced || '',
+      cost: parseFloat(dataToSave.cost) || 0,
+      mechanic: dataToSave.mechanic || '',
+      mileageAtService: parseInt(dataToSave.mileage_at_service) || 0,
+      status: capitalizeFirst(dataToSave.status),
+      priority: capitalizeFirst(dataToSave.priority)
+    };
+
+    console.log('Enviando al backend:', backendData);
+    onSave(backendData);
+  };
+
+  // Mapea los valores del frontend a los valores del backend (enum)
+  const mapMaintenanceType = (type) => {
+    const map = {
+      'preventivo': 0,
+      'correctivo': 1,
+      'revision': 2,
+      'reparacion': 3
+    };
+    return map[type] || 0;
+  };
+
+  // Capitaliza la primera letra para el backend
+  const capitalizeFirst = (str) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).replace('_', ' ');
   };
 
   return (
@@ -77,13 +127,13 @@ export default function MaintenanceDialog({ open, onOpenChange, maintenance, veh
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="vehicle_id">Vehículo *</Label>
-              <Select value={formData.vehicle_id} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })} required>
+              <Select value={String(formData.vehicle_id)} onValueChange={(value) => setFormData({ ...formData, vehicle_id: value })} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar vehículo" />
                 </SelectTrigger>
                 <SelectContent>
                   {vehicles.map((vehicle) => (
-                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                    <SelectItem key={vehicle.id} value={String(vehicle.id)}>
                       {vehicle.brand} {vehicle.model} - {vehicle.license_plate || vehicle.serial_number}
                     </SelectItem>
                   ))}

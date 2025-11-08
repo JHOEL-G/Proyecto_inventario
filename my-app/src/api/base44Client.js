@@ -53,6 +53,17 @@ export const base44 = {
     },
     Client: {
       list: async () => apiRequest(`${API_URL}/clients`),
+      create: async (clientData) => apiRequest(`${API_URL}/clients`, {
+        method: "POST",
+        body: JSON.stringify(clientData),
+      }),
+      update: async (id, clientData) => apiRequest(`${API_URL}/clients/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(clientData),
+      }),
+      delete: async (id) => apiRequest(`${API_URL}/clients/${id}`, {
+        method: "DELETE",
+      }),
     },
   },
 };

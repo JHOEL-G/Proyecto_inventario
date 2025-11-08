@@ -26,6 +26,8 @@ import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import Dashboard from "../Pages/Dashboard";
 import Vehicles from "../Pages/Vehicles";
 import Maintenance from "../Pages/Maintenance";
+import Clients from "../Pages/Clients";
+import Reports from "../Pages/Reports";
 
 export default function Layout() {
   const [activePage, setActivePage] = useState("Dashboard");
