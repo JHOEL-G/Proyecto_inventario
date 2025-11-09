@@ -4,10 +4,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Skeleton } from "../ui/skeleton";
 
 const COLORS = {
-  'disponible': '#10b981',
-  'vendido': '#3b82f6',
-  'en_mantenimiento': '#f59e0b',
-  'reservado': '#8b5cf6'
+  'disponible': 'blue',
+  'vendido': 'gray',
+  'en_mantenimiento': 'black',
+  'reservado': 'violet'
 };
 
 const STATUS_LABELS = {
@@ -39,7 +39,7 @@ export default function VehicleStatusChart({ vehicles, isLoading }) {
   const chartData = Object.entries(statusCounts).map(([status, count]) => ({
     name: STATUS_LABELS[status] || status,
     value: count,
-    color: COLORS[status] || '#6b7280'
+    color: COLORS[status] || 'violet'
   }));
 
   return (

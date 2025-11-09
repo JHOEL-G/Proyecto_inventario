@@ -44,6 +44,18 @@ export default function Vehicles() {
     },
   });
 
+  const { data: brandsList = [] } = useQuery({
+    queryKey: ['brands'],
+    queryFn: () => base44.entities.Brand.list(),
+  });
+
+  const { data: modelsList = [] } = useQuery({
+  queryKey: ['models'],
+  queryFn: () => base44.entities.Brand.getModels(selectedBrandId || 0), // si quieres filtrar por marca
+});
+
+
+
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Vehicle.delete(id),
     onSuccess: () => {
@@ -75,19 +87,22 @@ export default function Vehicles() {
     setSelectedVehicle(null);
     setIsDialogOpen(true);
   };
-
+  
   const filteredVehicles = vehicles.filter(vehicle => {
-    const matchesSearch = 
-      vehicle.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.serial_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.license_plate?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filters.status === 'all' || vehicle.status === filters.status;
-    const matchesFuel = filters.fuel_type === 'all' || vehicle.fuel_type === filters.fuel_type;
+    const matchesSearch =
+    vehicle.brandName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.modelName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.licensePlate?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+    filters.status === 'all' || vehicle.status.toString() === filters.status;
+    const matchesFuel =
+    filters.fuel_type === 'all' || vehicle.fuelType.toString() === filters.fuel_type;
 
     return matchesSearch && matchesStatus && matchesFuel;
-  });
+});
+
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -100,7 +115,7 @@ export default function Vehicles() {
         </div>
         <Button 
           onClick={handleAddNew}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30"
+          className="bg-gradient-to-r text-gray-50 from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30"
         >
           <Plus className="w-4 h-4 mr-2" />
           Agregar Vehículo
@@ -114,7 +129,7 @@ export default function Vehicles() {
             placeholder="Buscar por marca, modelo, número de serie..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white/80 backdrop-blur-sm border-slate-200"
+            className="pl-10 bg-white backdrop-blur-sm border-slate-200"
           />
         </div>
         <VehicleFilters filters={filters} setFilters={setFilters} />
@@ -135,6 +150,8 @@ export default function Vehicles() {
         onSave={handleSave}
         isSaving={createMutation.isPending || updateMutation.isPending}
         clients={clients}
+        brands={brandsList}      // <-- esto es nuevo
+        models={modelsList}
       />
     </div>
   );

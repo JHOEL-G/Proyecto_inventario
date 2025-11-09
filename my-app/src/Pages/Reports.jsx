@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet, Calendar, DollarSign } from "lucide-react";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 export default function Reports() {
@@ -27,58 +29,45 @@ export default function Reports() {
   });
 
   const exportToExcel = () => {
-    setExportLoading(true);
-    
-    const vehiclesData = vehicles.map(v => ({
-      'Marca': v.brand,
-      'Modelo': v.model,
-      'Año': v.year,
-      'Número de Serie': v.serial_number,
-      'Placa': v.license_plate || '',
-      'Estado': v.status,
-      'Precio Venta': v.sale_price || 0,
-      'Kilometraje': v.mileage || 0,
-      'Ubicación': v.location || ''
-    }));
+  setExportLoading(true);
 
-    const maintenanceData = maintenances.map(m => {
-      const vehicle = vehicles.find(v => v.id === m.vehicle_id);
-      return {
-        'Vehículo': vehicle ? `${vehicle.brand} ${vehicle.model}` : '',
-        'Tipo': m.maintenance_type,
-        'Fecha': m.service_date,
-        'Estado': m.status,
-        'Costo': m.cost || 0,
-        'Descripción': m.description
-      };
-    });
+const vehiclesData = vehicles.map(v => ({
+  Marca: v.brandName ?? '',
+  Modelo: v.modelName ?? '',
+  Año: v.year ?? 0,
+  'Número de Serie': v.serial_number ?? '', // <--- Clave D
+  Placa: v.license_plate ?? '',             // <--- Clave E
+  Estado: v.status ?? '',                   // <--- Clave F
+  'Precio Venta': v.sale_price ?? '',
+  Kilometraje: v.mileage ?? '',
+  Ubicación: v.location ?? ''
+}));
 
-    const csvVehicles = [
-      Object.keys(vehiclesData[0] || {}).join(','),
-      ...vehiclesData.map(row => Object.values(row).map(v => JSON.stringify(v)).join(','))
-    ].join('\n');
+  const maintenanceData = maintenances.map(m => {
+    const vehicle = vehicles.find(v => v.id === m.vehicle_id);
+    return {
+      Vehículo: vehicle ? `${vehicle.brandName} ${vehicle.modelName}` : '',
+      Tipo: m.maintenance_type,
+      Fecha: m.service_date,
+      Estado: m.status,
+      Costo: m.cost || 0,
+      Descripción: m.description
+    };
+  });
 
-    const csvMaintenance = [
-      Object.keys(maintenanceData[0] || {}).join(','),
-      ...maintenanceData.map(row => Object.values(row).map(v => JSON.stringify(v)).join(','))
-    ].join('\n');
+  // Crear libro Excel
+  const wb = XLSX.utils.book_new();
+  const wsVehicles = XLSX.utils.json_to_sheet(vehiclesData);
+  const wsMaintenances = XLSX.utils.json_to_sheet(maintenanceData);
 
-    const blob1 = new Blob([csvVehicles], { type: 'text/csv;charset=utf-8;' });
-    const blob2 = new Blob([csvMaintenance], { type: 'text/csv;charset=utf-8;' });
-    
-    const link1 = document.createElement('a');
-    link1.href = URL.createObjectURL(blob1);
-    link1.download = `vehiculos_${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    link1.click();
+  XLSX.utils.book_append_sheet(wb, wsVehicles, 'Vehículos');
+  XLSX.utils.book_append_sheet(wb, wsMaintenances, 'Mantenimientos');
 
-    setTimeout(() => {
-      const link2 = document.createElement('a');
-      link2.href = URL.createObjectURL(blob2);
-      link2.download = `mantenimientos_${format(new Date(), 'yyyy-MM-dd')}.csv`;
-      link2.click();
-      setExportLoading(false);
-    }, 500);
-  };
+  // Guardar archivo
+  XLSX.writeFile(wb, `reportes_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  setExportLoading(false);
+};
+
 
   const maintenanceCostsByMonth = maintenances.reduce((acc, m) => {
     if (!m.cost || !m.service_date) return acc;

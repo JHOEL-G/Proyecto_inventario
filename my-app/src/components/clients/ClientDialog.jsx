@@ -19,9 +19,10 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
     notes: ''
   });
 
+  const comboItemClass = "cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-700 dark:hover:text-blue-200 transition-colors";
+
   useEffect(() => {
     if (client) {
-      // Maneja tanto camelCase (del backend) como snake_case (del estado)
       setFormData({
         full_name: client.fullName || client.full_name || '',
         email: client.email || '',
@@ -46,39 +47,37 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
     }
   }, [client, open]);
 
- const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  if (!formData.full_name.trim() || !formData.phone.trim()) {
-    alert('El nombre y teléfono son requeridos');
-    return;
-  }
+    if (!formData.full_name.trim() || !formData.phone.trim()) {
+      alert('El nombre y teléfono son requeridos');
+      return;
+    }
 
-  const clientTypeMap = { individual: 1, empresa: 2 };
+    const clientTypeMap = { individual: 1, empresa: 2 };
 
-  const backendData = {
-    fullName: formData.full_name.trim(),
-    email: formData.email.trim() || null,
-    phone: formData.phone.trim(),
-    address: formData.address.trim() || null,
-    city: formData.city.trim() || null,
-    identification: formData.identification.trim() || null,
-    clienttype: clientTypeMap[formData.client_type], // t minúscula
-    notes: formData.notes.trim() || null
+    const backendData = {
+      fullName: formData.full_name.trim(),
+      email: formData.email.trim() || null,
+      phone: formData.phone.trim(),
+      address: formData.address.trim() || null,
+      city: formData.city.trim() || null,
+      identification: formData.identification.trim() || null,
+      clienttype: clientTypeMap[formData.client_type], // t minúscula
+      notes: formData.notes.trim() || null
+    };
+
+    if (client && client.id) {
+      backendData.id = client.id;
+    }
+
+    onSave(backendData);
   };
-
-  if (client && client.id) {
-    backendData.id = client.id;
-  }
-
-  // ENVÍA EL OBJETO PLANO, NO envuelvas en { client: ... }
-  onSave(backendData);
-};
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white text-gray-900 rounded-xl shadow-lg p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {client ? 'Editar Cliente' : 'Agregar Cliente'}
@@ -86,6 +85,7 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Nombre completo */}
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="full_name">Nombre Completo *</Label>
               <Input
@@ -93,9 +93,11 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 required
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
+            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -103,9 +105,11 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
+            {/* Teléfono */}
             <div className="space-y-2">
               <Label htmlFor="phone">Teléfono *</Label>
               <Input
@@ -113,52 +117,61 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
+            {/* Identificación */}
             <div className="space-y-2">
               <Label htmlFor="identification">DNI / Identificación</Label>
               <Input
                 id="identification"
                 value={formData.identification}
                 onChange={(e) => setFormData({ ...formData, identification: e.target.value })}
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
+            {/* Tipo de Cliente */}
             <div className="space-y-2">
               <Label htmlFor="client_type">Tipo de Cliente</Label>
               <Select
                 value={formData.client_type}
                 onValueChange={(value) => setFormData({ ...formData, client_type: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="empresa">Empresa</SelectItem>
+                <SelectContent className="bg-white border border-gray-300 rounded-md shadow-md">
+                  <SelectItem value="individual" className={comboItemClass}>Individual</SelectItem>
+                  <SelectItem value="empresa" className={comboItemClass}>Empresa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Dirección */}
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="address">Dirección</Label>
               <Input
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
+            {/* Ciudad */}
             <div className="space-y-2">
               <Label htmlFor="city">Ciudad</Label>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
+            {/* Notas */}
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="notes">Notas</Label>
               <Textarea
@@ -166,6 +179,7 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
+                className="bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -175,7 +189,7 @@ export default function ClientDialog({ open, onOpenChange, client, onSave, isSav
               Cancelar
             </Button>
             <Button type="submit" disabled={isSaving} className="bg-gradient-to-r from-blue-600 to-blue-700">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {client ? 'Actualizar' : 'Crear'}
             </Button>
           </DialogFooter>

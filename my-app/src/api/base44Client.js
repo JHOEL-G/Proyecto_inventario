@@ -21,6 +21,7 @@ const apiRequest = async (url, options = {}) => {
   return res.json();
 };
 
+
 export const base44 = {
   entities: {
     Vehicle: {
@@ -36,7 +37,24 @@ export const base44 = {
       delete: async (id) => apiRequest(`${API_URL}/vehicles/${id}`, {
         method: "DELETE",
       }),
+      uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append("File", file);
+
+    const res = await fetch(`${API_URL}/vehicles/upload-image`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Error al subir la imagen");
+    return res.json(); // backend devuelve { imageUrl: "..." }
+  },
     },
+    Brand: {
+      list: async () => apiRequest(`${API_URL}/vehicles/brands`),
+      getModels: async (brandId) => apiRequest(`${API_URL}/vehicles/brands/${brandId}/models`)
+    },
+
     Maintenance: {
       list: async () => apiRequest(`${API_URL}/maintenances`),
       create: async (maintenanceData) => apiRequest(`${API_URL}/maintenances`, {  // <- ¡Nuevo! POST para crear
