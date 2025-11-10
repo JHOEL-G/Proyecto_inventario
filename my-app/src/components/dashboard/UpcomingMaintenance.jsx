@@ -40,7 +40,7 @@ export default function UpcomingMaintenance({ maintenances, vehicles, isLoading 
 
   const getVehicleInfo = (vehicleId) => {
     const vehicle = vehicles.find(v => v.id === vehicleId);
-    return vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Vehículo desconocido';
+    return vehicle ? `${vehicle.brandName} ${vehicle.modelName}` : 'Vehículo desconocido';
   };
 
   return (

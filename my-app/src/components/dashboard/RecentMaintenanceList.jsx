@@ -38,7 +38,7 @@ export default function RecentMaintenanceList({ maintenances, vehicles, isLoadin
 
   const getVehicleInfo = (vehicleId) => {
     const vehicle = vehicles.find(v => v.id === vehicleId);
-    return vehicle ? `${vehicle.brand} ${vehicle.model} - ${vehicle.license_plate || 'Sin placa'}` : 'Vehículo desconocido';
+    return vehicle ? `${vehicle.brandName} ${vehicle.modelName} - ${vehicle.license_plate || 'Sin placa'}` : 'Vehículo desconocido';
   };
 
   return (

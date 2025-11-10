@@ -6,6 +6,9 @@ import {
   Users,
   FileText,
   LogOut,
+  Image,
+  ImageIcon,
+  ImageDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +31,7 @@ import Vehicles from "../Pages/Vehicles";
 import Maintenance from "../Pages/Maintenance";
 import Clients from "../Pages/Clients";
 import Reports from "../Pages/Reports";
+import Reportes from "../Pages/Reportes";
 
 export default function Layout() {
   const [activePage, setActivePage] = useState("Dashboard");
@@ -38,6 +42,7 @@ export default function Layout() {
     { title: "Mantenimientos", icon: Wrench },  // <- Consistente con case
     { title: "Clientes", icon: Users },
     { title: "Reportes", icon: FileText },
+    { title: "Reportes Mantenimientos", icon: FileText },
   ];
 
   // ✅ Handler para logout (ajusta a tu auth: ej. router.navigate('/login'))
@@ -59,6 +64,8 @@ export default function Layout() {
         return <Clients />;
       case "Reportes":
         return <Reports />;
+      case "Reportes Mantenimientos":
+        return <Reportes />;
       default:
         return <Dashboard />;
     }
@@ -71,11 +78,17 @@ export default function Layout() {
         <Sidebar className="border-r border-slate-200 bg-white/80 backdrop-blur-xl">
           <SidebarHeader className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <Car className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br  rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <img 
+                  src="/logoFScar.png" 
+                  alt="Logo de Financialsoft" 
+                  // CORRECCIÓN 1: Usamos object-contain para asegurar que el logo se vea completo
+                  // CORRECCIÓN 2: Le damos un padding (p-1.5) para que no toque los bordes del recuadro azul
+                  className="w-full h-full "
+                /> 
               </div>
               <div>
-                <h2 className="font-bold text-lg text-slate-900">AutoManager</h2>
+                <h2 className="font-bold text-lg text-slate-900">FINANCIALSOFT</h2>
                 <p className="text-xs text-slate-500">Sistema de Gestión</p>
               </div>
             </div>

@@ -45,10 +45,19 @@ export default function MaintenanceList({ maintenances, vehicles, isLoading, onE
     );
   }
 
-  const getVehicleInfo = (vehicleId) => {
-    const vehicle = vehicles.find(v => v.id === vehicleId);
-    return vehicle ? `${vehicle.brand} ${vehicle.model} (${vehicle.license_plate || vehicle.serial_number})` : 'Vehículo desconocido';
-  };
+  // CÓDIGO CORREGIDO PARA MAYOR COMPATIBILIDAD
+const getVehicleInfo = (vehicleId) => {
+  const vehicle = vehicles.find(v => v.id === vehicleId);
+  
+  if (!vehicle) return 'Vehículo desconocido';
+
+  // Usar brand, model, licensePlate/serialNumber (ajusta según tus datos)
+  const brand = vehicle.brand || vehicle.brandName || 'Marca';
+  const model = vehicle.model || vehicle.modelName || 'Modelo';
+  const identifier = vehicle.license_plate || vehicle.licensePlate || vehicle.serial_number || 'S/N';
+
+  return `${brand} ${model} (${identifier})`;
+};
 
   return (
     <div className="space-y-4">
