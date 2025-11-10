@@ -1,5 +1,5 @@
 // src/api/base44Client.js
-const API_URL = import.meta.env.VITE_API_URL || "https://localhost:7110/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://inventario-vehiculos.onrender.com/api";
 
 const apiRequest = async (url, options = {}) => {
   const res = await fetch(url, {

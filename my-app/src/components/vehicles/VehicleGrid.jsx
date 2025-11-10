@@ -1,9 +1,9 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash2, MapPin, Gauge, DollarSign, User } from "lucide-react";
+import { Edit, Trash2, MapPin, Gauge, User, Car } from "lucide-react";
 
 // --- Configuración de URL y Fallback (API Integration) ---
-const API_BASE_URL = "https://localhost:7110";
+const API_BASE_URL = "https://inventario-vehiculos.onrender.com";
 const FALLBACK_IMAGE_URL =
   "https://placehold.co/600x400/CCCCCC/333333?text=Sin+Foto";
 

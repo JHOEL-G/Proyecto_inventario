@@ -38,8 +38,8 @@ const vehiclesData = vehicles.map(v => ({
   'Número de Serie': v.serial_number ?? '', // <--- Clave D
   Placa: v.license_plate ?? '',             // <--- Clave E
   Estado: v.status ?? '',                   // <--- Clave F
-  'Precio Venta': v.sale_price ?? '',
-  Kilometraje: v.mileage ?? '',
+  'Precio Venta': v.sale_price ?? 0,
+  Kilometraje: v.mileage ?? 0,
   Ubicación: v.location ?? ''
 }));
 
@@ -82,7 +82,7 @@ const vehiclesData = vehicles.map(v => ({
   })).slice(-6);
 
   const vehiclesByBrand = vehicles.reduce((acc, v) => {
-    acc[v.brand] = (acc[v.brand] || 0) + 1;
+    acc[v.brandName] = (acc[v.brandName] || 0) + 1;
     return acc;
   }, {});
 
