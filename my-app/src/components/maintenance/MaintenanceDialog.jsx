@@ -9,56 +9,56 @@ import { Loader2 } from "lucide-react";
 
 export default function MaintenanceDialog({ open, onOpenChange, maintenance, vehicles, onSave, isSaving }) {
   const [formData, setFormData] = useState({
-  vehicle_id: '',
-  maintenance_type: '', // <-- vacio
-  service_date: new Date().toISOString().split('T')[0],
-  next_service_date: '',
-  description: '',
-  parts_replaced: '',
-  cost: '',
-  mechanic: '',
-  mileage_at_service: '',
-  status: 'pendiente',
-  priority: 'media'
-});
+    vehicle_id: '',
+    maintenance_type: 'preventivo', // <-- vacio
+    service_date: new Date().toISOString().split('T')[0],
+    next_service_date: '',
+    description: '',
+    parts_replaced: '',
+    cost: '',
+    mechanic: '',
+    mileage_at_service: '',
+    status: 'pendiente',
+    priority: 'media'
+  });
 
 
   const maintenanceTypeMapReverse = {
-  0: 'preventivo',
-  1: 'correctivo',
-  2: 'revision',
-  3: 'reparacion'
-};
+    0: 'preventivo',
+    1: 'correctivo',
+    2: 'revision',
+    3: 'reparacion'
+  };
 
 
-useEffect(() => {
-  if (maintenance) {
-    const serviceDate = maintenance.serviceDate ? new Date(maintenance.serviceDate).toISOString().split('T')[0] : '';
-    const nextServiceDate = maintenance.nextServiceDate ? new Date(maintenance.nextServiceDate).toISOString().split('T')[0] : '';
+  useEffect(() => {
+    if (maintenance) {
+      const serviceDate = maintenance.serviceDate ? new Date(maintenance.serviceDate).toISOString().split('T')[0] : '';
+      const nextServiceDate = maintenance.nextServiceDate ? new Date(maintenance.nextServiceDate).toISOString().split('T')[0] : '';
 
-    setFormData({
-      ...maintenance,
-      vehicle_id: String(maintenance.vehicleId), 
-      maintenance_type: maintenanceTypeMapReverse[maintenance.maintenanceType] || 'preventivo',
-      service_date: serviceDate,
-      next_service_date: nextServiceDate
-    });
-  } else {
-    setFormData({
-      vehicle_id: '',
-      maintenance_type: 'preventivo',
-      service_date: new Date().toISOString().split('T')[0],
-      next_service_date: '',
-      description: '',
-      parts_replaced: '',
-      cost: '',
-      mechanic: '',
-      mileage_at_service: '',
-      status: 'pendiente',
-      priority: 'media'
-    });
-  }
-}, [maintenance, open]);
+      setFormData({
+        ...maintenance,
+        vehicle_id: String(maintenance.vehicleId),
+        maintenance_type: maintenanceTypeMapReverse[maintenance.maintenanceType] || 'preventivo',
+        service_date: serviceDate,
+        next_service_date: nextServiceDate
+      });
+    } else {
+      setFormData({
+        vehicle_id: '',
+        maintenance_type: 'preventivo',
+        service_date: new Date().toISOString().split('T')[0],
+        next_service_date: '',
+        description: '',
+        parts_replaced: '',
+        cost: '',
+        mechanic: '',
+        mileage_at_service: '',
+        status: 'pendiente',
+        priority: 'media'
+      });
+    }
+  }, [maintenance, open]);
 
 
   const handleSubmit = (e) => {
@@ -77,26 +77,26 @@ useEffect(() => {
 
     const backendData = {
       id: dataToSave.id,
-      vehicleId: parseInt(dataToSave.vehicle_id) || 0,
-      maintenanceType: mapMaintenanceType(dataToSave.maintenance_type),
-      serviceDate: dataToSave.service_date,
-      nextServiceDate: dataToSave.next_service_date,
+      vehicle_id: parseInt(dataToSave.vehicle_id) || 0,
+      maintenance_type: mapMaintenanceType(dataToSave.maintenance_type),
+      service_date: dataToSave.service_date,
+      next_service_date: dataToSave.next_service_date,
       description: dataToSave.description || '',
-      partsReplaced: dataToSave.parts_replaced || '',
+      parts_replaced: dataToSave.parts_replaced || '',
       cost: parseFloat(dataToSave.cost) || 0,
       mechanic: dataToSave.mechanic || '',
-      mileageAtService: parseInt(dataToSave.mileage_at_service) || 0,
-      status: capitalizeFirst(dataToSave.status),
-      priority: capitalizeFirst(dataToSave.priority)
+      mileage_at_service: parseInt(dataToSave.mileage_at_service) || 0,
+      status: dataToSave.status,
+      priority: dataToSave.priority,
     };
 
     onSave(backendData);
   };
 
-const mapMaintenanceType = (type) => {
-  const map = { 'preventivo': 0, 'correctivo': 1, 'revision': 2, 'reparacion': 3 };
-  return map[type] || 0;
-};
+  const mapMaintenanceType = (type) => {
+    const map = { 'preventivo': 0, 'correctivo': 1, 'revision': 2, 'reparacion': 3 };
+    return map[type] || 0;
+  };
 
 
   const capitalizeFirst = (str) => {

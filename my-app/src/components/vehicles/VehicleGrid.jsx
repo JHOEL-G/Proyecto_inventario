@@ -2,40 +2,20 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit, Trash2, MapPin, Gauge, User, Car } from "lucide-react";
 
-// --- Configuración de URL y Fallback (API Integration) ---
-const API_BASE_URL = "https://inventario-vehiculos.onrender.com";
-const FALLBACK_IMAGE_URL =
-  "https://placehold.co/600x400/CCCCCC/333333?text=Sin+Foto";
+const API_BASE_URL = "http://cars.financialsoft.site";
+const FALLBACK_IMAGE_URL = "https://placehold.co/600x400/CCCCCC/333333?text=Sin+Foto";
 
-// --- START: Componentes de UI Integrados ---
 const Button = React.forwardRef(({ className, variant, size, ...props }, ref) => {
-  const baseClasses =
-    "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
-  const sizeClasses = {
-    default: "h-10 py-2 px-4",
-    sm: "h-9 px-3 rounded-md",
-    lg: "h-11 px-8 rounded-lg",
-    icon: "h-10 w-10",
-  };
-  const variantClasses = {
-    default: "bg-blue-600 text-white hover:bg-blue-700 shadow-md",
-    outline: "border border-input bg-white shadow-sm hover:bg-slate-100",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-    ghost: "hover:bg-slate-100",
-  };
-  const finalClass = `${baseClasses} ${
-    sizeClasses[size] || sizeClasses.default
-  } ${variantClasses[variant] || variantClasses.default} ${className}`;
+  const baseClasses = "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
+  const sizeClasses = { default: "h-10 py-2 px-4", sm: "h-9 px-3 rounded-md", lg: "h-11 px-8 rounded-lg", icon: "h-10 w-10" };
+  const variantClasses = { default: "bg-blue-600 text-white hover:bg-blue-700 shadow-md", outline: "border border-input bg-white shadow-sm hover:bg-slate-100", secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200", ghost: "hover:bg-slate-100" };
+  const finalClass = `${baseClasses} ${sizeClasses[size] || sizeClasses.default} ${variantClasses[variant] || variantClasses.default} ${className}`;
   return <button className={finalClass} ref={ref} {...props} />;
 });
 Button.displayName = "Button";
 
 const Card = React.forwardRef(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={`rounded-xl border bg-card text-card-foreground shadow-sm ${className}`}
-    {...props}
-  />
+  <div ref={ref} className={`rounded-xl border bg-card text-card-foreground shadow-sm ${className}`} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -45,13 +25,8 @@ const CardContent = React.forwardRef(({ className, ...props }, ref) => (
 CardContent.displayName = "CardContent";
 
 const Badge = ({ className, variant, ...props }) => {
-  const baseClasses =
-    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
-  const variantClasses = {
-    default: "border-transparent bg-blue-500 text-white hover:bg-blue-500/80",
-    secondary: "border-transparent bg-slate-100 text-slate-900 hover:bg-slate-100/80",
-    outline: "text-foreground",
-  };
+  const baseClasses = "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
+  const variantClasses = { default: "border-transparent bg-blue-500 text-white hover:bg-blue-500/80", secondary: "border-transparent bg-slate-100 text-slate-900 hover:bg-slate-100/80", outline: "text-foreground" };
   const finalClass = `${baseClasses} ${variantClasses[variant] || variantClasses.default} ${className}`;
   return <div className={finalClass} {...props} />;
 };
@@ -60,7 +35,6 @@ Badge.displayName = "Badge";
 const Skeleton = ({ className, ...props }) => (
   <div className={`animate-pulse rounded-md bg-slate-200 ${className}`} {...props} />
 );
-// --- END: Componentes de UI Integrados ---
 
 const STATUS_CONFIG = {
   disponible: { color: "bg-green-600 text-white", label: "Disponible para Venta" },
@@ -71,21 +45,14 @@ const STATUS_CONFIG = {
   transito: { color: "bg-yellow-500 text-slate-900", label: "En Tránsito" },
 };
 
-// Función de utilidad para formatear la moneda
 const formatCurrency = (value, locale = "es-PE", currency = "USD") => {
   if (typeof value !== "number" || isNaN(value)) return "N/A";
   return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
 };
-const statusMap = {
-  0: "disponible",
-  1: "vendido",
-  2: "en_mantenimiento",
-  3: "reservado",
-};
 
+const statusMap = { 0: "disponible", 1: "vendido", 2: "en_mantenimiento", 3: "reservado" };
 
 export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, clients }) {
-  // Función para manejar errores de carga de imagen
   const handleImageError = (e) => {
     e.target.onerror = null;
     e.target.src = FALLBACK_IMAGE_URL;
@@ -94,18 +61,16 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-        {Array(6)
-          .fill(0)
-          .map((_, i) => (
-            <Card key={i} className="overflow-hidden">
-              <Skeleton className="h-48 w-full" />
-              <CardContent className="p-4">
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-8 w-1/3 mt-4" />
-              </CardContent>
-            </Card>
-          ))}
+        {Array(6).fill(0).map((_, i) => (
+          <Card key={i} className="overflow-hidden">
+            <Skeleton className="h-48 w-full" />
+            <CardContent className="p-4">
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-8 w-1/3 mt-4" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
@@ -133,11 +98,11 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
           const clientName = getClientName(vehicle.owner_id);
 
           const imagePath = vehicle.imageUrl || vehicle.image_url;
-          const fullImageUrl =
-            imagePath && imagePath !== "/" ? `${API_BASE_URL}${imagePath}` : FALLBACK_IMAGE_URL;
+          const fullImageUrl = imagePath && imagePath !== "/" ? `${API_BASE_URL}${imagePath}` : FALLBACK_IMAGE_URL;
 
-          const formattedPrice = formatCurrency(parseFloat(vehicle.salePrice || vehicle.sale_price));
-          const licensePlate = vehicle.license_plate || vehicle.LicensePlate;
+          const salePrice = vehicle.salePrice || vehicle.sale_price || 0;
+          const formattedPrice = formatCurrency(parseFloat(salePrice) || 0);
+          const licensePlate = vehicle.licensePlate || vehicle.license_plate;
 
           return (
             <motion.div
@@ -149,7 +114,6 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
               className="h-full"
             >
               <Card className="overflow-hidden border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm group flex flex-col h-full">
-                {/* Sección de Imagen y Estatus */}
                 <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
                   <img
                     src={fullImageUrl}
@@ -164,7 +128,6 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
                   </div>
                 </div>
 
-                {/* Sección de Contenido */}
                 <CardContent className="p-5 flex-grow flex flex-col">
                   <div className="mb-4 flex justify-between items-start">
                     <div className="flex-1">
@@ -177,23 +140,18 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
                     </div>
                   </div>
 
-                  {/* Precio de Venta */}
                   <div className="text-right">
-                    <p
-                      className={`text-2xl font-extrabold leading-none ${
-                        formattedPrice === "N/A" ? "text-slate-400" : "text-green-700"
-                      }`}
-                    >
+                    <p className={`text-2xl font-extrabold leading-none ${formattedPrice === "N/A" ? "text-slate-400" : "text-green-700"}`}>
                       {formattedPrice}
                     </p>
                     <span className="text-xs text-slate-500 font-medium">Precio Venta</span>
                   </div>
 
                   <div className="space-y-2 mb-4 flex-grow">
-                    {vehicle.mileage && (
+                    {vehicle.mileage != null && !isNaN(Number(vehicle.mileage)) && (
                       <div className="flex items-center gap-2 text-sm text-slate-700">
                         <Gauge className="w-4 h-4 text-slate-500" />
-                        <span>{vehicle.mileage.toLocaleString()} km</span>
+                        <span>{Number(vehicle.mileage).toLocaleString()} km</span>
                       </div>
                     )}
 
@@ -211,16 +169,15 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
                       </div>
                     )}
 
-                    {vehicle.licensePlate && (
+                    {licensePlate && (
                       <div className="flex items-center gap-2 text-sm text-slate-700">
                         <span className="font-mono text-xs bg-blue-50 text-blue-800 px-3 py-1 rounded-full border border-blue-200 shadow-sm font-semibold">
-                          PLACA: {vehicle.licensePlate}
+                          PLACA: {licensePlate}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Sección de Botones */}
                   <div className="flex gap-2 mt-auto pt-3 border-t border-slate-100">
                     <Button
                       variant="outline"

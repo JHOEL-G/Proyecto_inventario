@@ -17,8 +17,8 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
 
   const [formData, setFormData] = useState({
     // Campos básicos (ya existentes)
-    brandId: '',
-    modelId: '',
+    MarcaID: '',
+    ModeloID: '',
     year: new Date().getFullYear(),
     serial_number: '',
     license_plate: '',
@@ -53,17 +53,17 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
   // ------------------------------ Transformaciones (sin cambios) ------------------------------
   const transformFromBackend = (backendData) => {
     if (!backendData) return null;
-    const statusMap = { 0: 'disponible', 1: 'vendido', 2: 'en_mantenimiento', 3: 'reservado' };
-    const fuelTypeMap = { 0: 'gasolina', 1: 'diesel', 2: 'electrico', 3: 'hibrido', 4: 'gas' };
-    const transmissionMap = { 0: 'manual', 1: 'automatica', 2: 'semiautomatica', 3: 'cvt' };
+    const statusMap = { 'Active': 'disponible', 'Sold': 'vendido', 'Maintenance': 'en_mantenimiento', 'Inactive': 'reservado' };
+    const fuelTypeMap = { 'Gasoline': 'gasolina', 'Diesel': 'diesel', 'Electric': 'electrico', 'Hybrid': 'hibrido' };
+    const transmissionMap = { 'Manual': 'manual', 'Automatic': 'automatica', 'CVT': 'cvt' };
 
-    // Imágenes detalladas: asumir que backendData.detailedImages es un array de { url: string }
+    // Imágenes detalladas
     const detailedImagesUrls = backendData.detailedImages?.map(img => img.url) || [];
 
     return {
-      // Campos básicos
-      brandId: brands?.find(b => b.name === backendData.brandName)?.id?.toString() || '',
-      modelId: models?.find(m => m.name === backendData.modelName)?.id?.toString() || '',
+      MarcaID: backendData.marcaID?.toString() || '',
+      ModeloID: backendData.modeloID?.toString() || '',
+
       year: backendData.year || new Date().getFullYear(),
       serial_number: backendData.serialNumber || '',
       license_plate: backendData.licensePlate || '',
@@ -79,12 +79,11 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
       notes: backendData.notes || '',
       owner_id: backendData.ownerId?.toString() || '',
 
-      // Campos nuevos
       engine_number: backendData.engineNumber || '',
       registration_number: backendData.registrationNumber || '',
       registration_card_url: backendData.registrationCardUrl || '',
       insurance_policy_url: backendData.insurancePolicyUrl || '',
-      policy_expiration_date: backendData.policyExpirationDate ? backendData.policyExpirationDate.split('T')[0] : '', // Solo fecha YYYY-MM-DD
+      policy_expiration_date: backendData.policyExpirationDate ? backendData.policyExpirationDate.split('T')[0] : '',
       invoice_url: backendData.invoiceUrl || '',
       verification_certificate_url: backendData.verificationCertificateUrl || '',
       verification_sticker_color: backendData.verificationStickerColor || '',
@@ -97,33 +96,35 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
   };
 
   const transformToBackend = (frontendData) => {
-    const statusMap = { 'disponible': 0, 'vendido': 1, 'en_mantenimiento': 2, 'reservado': 3 };
-    const fuelTypeMap = { 'gasolina': 0, 'diesel': 1, 'electrico': 2, 'hibrido': 3, 'gas': 4 };
-    const transmissionMap = { 'manual': 0, 'automatica': 1, 'semiautomatica': 2, 'cvt': 3 };
+    const statusMap = { 'disponible': 'Active', 'vendido': 'Sold', 'en_mantenimiento': 'Maintenance', 'reservado': 'Inactive' };
+    const fuelTypeMap = { 'gasolina': 'Gasoline', 'diesel': 'Diesel', 'electrico': 'Electric', 'hibrido': 'Hybrid', 'gas': 'Gasoline' };
+    const transmissionMap = { 'manual': 'Manual', 'automatica': 'Automatic', 'cvt': 'CVT', 'semiautomatica': 'Automatic' };
 
-    // Imágenes detalladas: enviar solo URLs (asumir que se suben por separado)
-    const detailedImages = frontendData.detailed_images.map(url => ({ url }));
+    const detailedImages = Array.isArray(frontendData.detailed_images)
+      ? frontendData.detailed_images.map(url => ({ url }))
+      : [];
 
     return {
       // Campos básicos
-      brandId: parseInt(frontendData.brandId) || 0,
-      modelId: parseInt(frontendData.modelId) || 0,
+      marcaID: parseInt(frontendData.brandId) || 0,
+      modeloID: parseInt(frontendData.modelId) || 0,
+      // El resto de propiedades del DTO:
       year: parseInt(frontendData.year) || new Date().getFullYear(),
       serialNumber: frontendData.serial_number || null,
       licensePlate: frontendData.license_plate || null,
       color: frontendData.color || null,
-      status: statusMap[frontendData.status] ?? 0,
+      status: statusMap[frontendData.status] ?? 'Active',
       location: frontendData.location || null,
       purchasePrice: frontendData.purchase_price ? parseFloat(frontendData.purchase_price) : 0,
       salePrice: frontendData.sale_price ? parseFloat(frontendData.sale_price) : 0,
       mileage: frontendData.mileage ? parseFloat(frontendData.mileage) : 0,
-      fuelType: fuelTypeMap[frontendData.fuel_type] ?? 0,
-      transmission: transmissionMap[frontendData.transmission] ?? 0,
+      fuelType: fuelTypeMap[frontendData.fuel_type] ?? 'Gasoline',
+      transmission: transmissionMap[frontendData.transmission] ?? 'Manual',
       imageUrl: frontendData.image_url || null,
       notes: frontendData.notes || null,
       ownerId: frontendData.owner_id ? parseInt(frontendData.owner_id) : null,
 
-      // Campos nuevos
+      // Campos adicionales
       engineNumber: frontendData.engine_number || null,
       registrationNumber: frontendData.registration_number || null,
       registrationCardUrl: frontendData.registration_card_url || null,
@@ -136,11 +137,9 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
       tankCapacityLiters: frontendData.tank_capacity_liters ? parseFloat(frontendData.tank_capacity_liters) : 0,
       costPerKm: frontendData.cost_per_km ? parseFloat(frontendData.cost_per_km) : 0,
       fuelEfficiencyKmL: frontendData.fuel_efficiency_kml ? parseFloat(frontendData.fuel_efficiency_kml) : 0,
-      detailedImages
+      detailedImages: detailedImages
     };
   };
-
-  // ------------------------------ Efectos y Handlers (sin cambios funcionales, solo los necesarios) ------------------------------
 
   useEffect(() => {
     const loadModels = async (brandId) => {
@@ -157,7 +156,9 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
         // Si el modelo actual no existe en la lista, limpiar modelId
         setFormData(prev => ({
           ...prev,
-          modelId: modelsFromApi.find(m => m.id.toString() === prev.modelId)?.id.toString() || ''
+          modelId: Array.isArray(modelsFromApi)
+            ? (modelsFromApi.find(m => m?.id?.toString() === prev.modelId?.toString())?.id?.toString() || '')
+            : ''
         }));
       } catch (err) {
         console.error("Error cargando modelos:", err);
@@ -202,23 +203,17 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
       setModelOptions([]);
       setDetailedImages([]);
     } else {
-      // Editar vehículo: usar transformFromBackend para consistencia
       const transformed = transformFromBackend(vehicle);
       if (transformed) {
         setFormData(transformed);
         setDetailedImages(transformed.detailed_images || []);
       }
-
-      // Cargar modelos basados en brandId del vehículo
-      const brandId = transformed?.brandId || '';
-      if (brandId) {
-        loadModels(brandId);
-      }
     }
-  }, [vehicle, brands, models]); // Agregué models a deps para consistencia
+  }, [vehicle]);
 
   useEffect(() => {
     if (!formData.brandId) {
+      console.log("No hay brandId, limpiando modelOptions y modelId");
       setModelOptions([]);
       setFormData(prev => ({ ...prev, modelId: '' }));
       return;
@@ -226,19 +221,33 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
 
     const fetchModels = async () => {
       try {
-        const modelsFromApi = await base44.entities.Brand.getModels(formData.brandId);
+        console.log("Cargando modelos para brandId:", formData.brandId);
+        const modelsFromApi = (await base44.entities.Brand.getModels(formData.brandId)) || [];
+        console.log("Modelos recibidos del API:", modelsFromApi);
+
         setModelOptions(modelsFromApi);
-        if (!modelsFromApi.find(m => m.id.toString() === formData.modelId)) {
+
+        const modelExists = modelsFromApi.some(m => {
+          console.log("Comprobando modelo:", m, "vs formData.modelId:", formData.modelId);
+          return m?.id?.toString() === formData.modelId?.toString();
+        });
+
+        if (!modelExists) {
+          console.log("ModelId actual no existe en la lista, limpiando modelId");
           setFormData(prev => ({ ...prev, modelId: '' }));
+        } else {
+          console.log("ModelId actual válido:", formData.modelId);
         }
       } catch (err) {
         console.error('Error fetching models:', err);
         setModelOptions([]);
+        setFormData(prev => ({ ...prev, modelId: '' }));
       }
-    };
-
+    }
     fetchModels();
   }, [formData.brandId]);
+
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -314,7 +323,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          
+
           {/* ============================================================================================================== */}
           {/* ## 1. Información General y de Identificación 🆔 */}
           {/* ============================================================================================================== */}
@@ -323,7 +332,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
               Datos Básicos y de Identificación
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              
+
               {/* Marca, Modelo, Año (Bloque 1) */}
               <div className="space-y-2">
                 <Label>Marca *</Label>
@@ -361,7 +370,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="year">Año *</Label>
                 <Input
@@ -412,7 +421,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
                   onChange={(e) => setFormData({ ...formData, license_plate: e.target.value })}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="registration_number">Número de Registro</Label>
                 <Input
@@ -424,9 +433,9 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
 
             </div>
           </div>
-          
+
           <hr className="my-8 border-gray-200 dark:border-gray-700" />
-          
+
           {/* ============================================================================================================== */}
           {/* ## 2. Estado y Datos Financieros 💰 */}
           {/* ============================================================================================================== */}
@@ -507,7 +516,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
           </div>
 
           <hr className="my-8 border-gray-200 dark:border-gray-700" />
-          
+
           {/* ============================================================================================================== */}
           {/* ## 3. Especificaciones y Consumo ⛽ */}
           {/* ============================================================================================================== */}
@@ -516,7 +525,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
               Datos Técnicos y Consumo
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              
+
               {/* Kilometraje */}
               <div className="space-y-2">
                 <Label htmlFor="mileage">Kilometraje (km)</Label>
@@ -612,7 +621,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
                   onChange={(e) => setFormData({ ...formData, cost_per_km: e.target.value })}
                 />
               </div>
-              
+
               {/* Color Calcomanía Verificación */}
               <div className="space-y-2">
                 <Label htmlFor="verification_sticker_color">Color Calcomanía Verificación</Label>
@@ -627,7 +636,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
           </div>
 
           <hr className="my-8 border-gray-200 dark:border-gray-700" />
-          
+
           {/* ============================================================================================================== */}
           {/* ## 4. Documentación y Archivos 📄 */}
           {/* ============================================================================================================== */}
@@ -636,7 +645,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
               Documentación y Archivos
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              
+
               {/* Tarjeta de Circulación */}
               <div className="space-y-2">
                 <Label>Tarjeta de Circulación</Label>
@@ -693,7 +702,7 @@ export default function VehicleDialog({ open, onOpenChange, vehicle, onSave, isS
               </div>
             </div>
           </div>
-          
+
           <hr className="my-8 border-gray-200 dark:border-gray-700" />
 
           {/* ============================================================================================================== */}

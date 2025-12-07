@@ -12,7 +12,7 @@ keycloak
   .init({
     onLoad: "login-required",
     checkLoginIframe: false,
-    redirectUri: import.meta.env.VITE_APP_URL,
+      redirectUri: import.meta.env.VITE_APP_URL,
   })
   .then(() => {
     createRoot(document.getElementById('root')).render(

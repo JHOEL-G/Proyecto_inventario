@@ -1,12 +1,14 @@
 // src/api/base44Client.js
-const API_URL = import.meta.env.VITE_API_URL || "https://inventario-vehiculos.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const apiRequest = async (url, options = {}) => {
+  const isFormData = options.body instanceof FormData;
+
   const res = await fetch(url, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
-      ...options.headers, // Permite overrides
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...options.headers,
     },
   });
 
@@ -14,12 +16,14 @@ const apiRequest = async (url, options = {}) => {
     let errorMsg = `Error ${res.status}`;
     try {
       const errorData = await res.json();
-      errorMsg = errorData.message || errorMsg; // Mensaje del backend (ej: duplicado)
-    } catch {} // Si no es JSON, usa genérico
+      errorMsg = errorData.message || errorMsg;
+    } catch {}
     throw new Error(errorMsg);
   }
+
   return res.json();
 };
+
 
 
 export const base44 = {
@@ -69,17 +73,45 @@ export const base44 = {
         method: "DELETE",
       }),
     },
-    Client: {
-      list: async () => apiRequest(`${API_URL}/clients`),
-      create: async (clientData) => apiRequest(`${API_URL}/clients`, {
-        method: "POST",
-        body: JSON.stringify(clientData),
-      }),
-      update: async (id, clientData) => apiRequest(`${API_URL}/clients/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(clientData),
-      }),
-      delete: async (id) => apiRequest(`${API_URL}/clients/${id}`, {
+    Conductores: {
+      list: async () => apiRequest(`${API_URL}/conductores`),
+      create: async (data) => {
+        const form = new FormData();
+
+        Object.keys(data).forEach(key => {
+          if (data[key] !== null && data[key] !== undefined) {
+            form.append(key, data[key]);
+          }
+        });
+
+        const res = await fetch(`${API_URL}/conductores`, {
+          method: "POST",
+          body: form, // <--- SIN HEADERS MANUALES
+        });
+
+        if (!res.ok) throw new Error("Error al crear el conductor");
+        return res.json();
+      },
+
+      update: async (id, data) => {
+        const form = new FormData();
+
+        Object.keys(data).forEach(key => {
+          if (data[key] !== null && data[key] !== undefined) {
+            form.append(key, data[key]);
+          }
+        });
+
+        const res = await fetch(`${API_URL}/conductores/${id}`, {
+          method: "PUT",
+          body: form,
+        });
+
+        if (!res.ok) throw new Error("Error al actualizar el conductor");
+        return res.json();
+      },
+
+      delete: async (id) => apiRequest(`${API_URL}/conductores/${id}`, {
         method: "DELETE",
       }),
     },

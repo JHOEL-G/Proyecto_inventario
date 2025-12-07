@@ -2,11 +2,20 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export default function VehicleFilters({ filters, setFilters }) {
+
+  const handleFilterChange = (key, value) => {
+    setFilters({
+      ...filters,
+      [key]: value,
+    });
+  };
+
   return (
     <div className="flex flex-wrap gap-3">
+
       <Select
         value={filters.status}
-        onValueChange={(value) => setFilters({ ...filters, status: value })}
+        onValueChange={(value) => handleFilterChange('status', value)}
       >
         <SelectTrigger className="w-40 bg-white/80 backdrop-blur-sm border-slate-200">
           <SelectValue placeholder="Estado" />
@@ -22,7 +31,7 @@ export default function VehicleFilters({ filters, setFilters }) {
 
       <Select
         value={filters.fuel_type}
-        onValueChange={(value) => setFilters({ ...filters, fuel_type: value })}
+        onValueChange={(value) => handleFilterChange('fuel_type', value)}
       >
         <SelectTrigger className="w-40 bg-white/80 backdrop-blur-sm border-slate-200">
           <SelectValue placeholder="Combustible" />
@@ -36,6 +45,7 @@ export default function VehicleFilters({ filters, setFilters }) {
           <SelectItem value="gas">Gas</SelectItem>
         </SelectContent>
       </Select>
+
     </div>
   );
 }
