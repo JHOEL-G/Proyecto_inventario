@@ -1,37 +1,67 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { base44 } from "../api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Car, Wrench, Users, AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
-import { Skeleton } from "../components/ui/skeleton";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Car, Wrench, Users, DollarSign } from "lucide-react";
 import StatsCard from "../components/dashboard/StatsCard";
 import RecentMaintenanceList from "../components/dashboard/RecentMaintenanceList";
 import VehicleStatusChart from "../components/dashboard/VehicleStatusChart";
 import UpcomingMaintenance from "../components/dashboard/UpcomingMaintenance";
 
-export default function Dashboard() {
-  const { data: vehicles = [], isLoading: loadingVehicles } = useQuery({
-  queryKey: ['vehicles'],
-  queryFn: () => base44.entities.Vehicle.list(),
-});
+// Configuración optimizada de queries
+const QUERY_CONFIG = {
+  staleTime: 5 * 60 * 1000, // 5 minutos - los datos se consideran frescos
+  gcTime: 10 * 60 * 1000, // 10 minutos - mantener en caché
+  refetchOnWindowFocus: false, // No recargar al volver a la ventana
+  refetchOnMount: false, // No recargar al montar si hay datos en caché
+};
 
+export default function Dashboard() {
+  const queryClient = useQueryClient();
+
+  // Queries optimizadas con configuración de caché
+  const { data: vehicles = [], isLoading: loadingVehicles } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: () => base44.entities.Vehicle.list(),
+    ...QUERY_CONFIG,
+  });
 
   const { data: maintenances = [], isLoading: loadingMaintenance } = useQuery({
     queryKey: ['maintenances'],
     queryFn: () => base44.entities.Maintenance.list('-service_date'),
+    ...QUERY_CONFIG,
   });
 
-  const { data: clients = [], isLoading: loadingClients } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+  const { data: conductores = [], isLoading: loadingConductores } = useQuery({
+    queryKey: ['conductores'],
+    queryFn: () => base44.entities.Conductores.list(), // CAMBIAR A PLURAL
+    ...QUERY_CONFIG,
   });
 
-  const availableVehicles = vehicles.filter(v => v.status === 'disponible').length;
-  const inMaintenanceCount = vehicles.filter(v => v.status === 'en_mantenimiento').length;
-  const totalRevenue = vehicles.reduce((sum, v) => sum + (v.sale_price || 0), 0);
-  const urgentMaintenance = maintenances.filter(m => m.priority === 'urgente' && m.status !== 'completado').length;
+  // Memoizar cálculos pesados para evitar recalcular en cada render
+  const stats = useMemo(() => {
+    const availableVehicles = vehicles.filter(v => v.status === 'disponible').length;
+    const inMaintenanceCount = vehicles.filter(v => v.status === 'en_mantenimiento').length;
+    const totalRevenue = vehicles.reduce((sum, v) => sum + (v.sale_price || 0), 0);
+    const urgentMaintenance = maintenances.filter(
+      m => m.priority === 'urgente' && m.status !== 'completado'
+    ).length;
 
-  const isLoading = loadingVehicles || loadingMaintenance || loadingClients;
+    return {
+      availableVehicles,
+      inMaintenanceCount,
+      totalRevenue,
+      urgentMaintenance,
+    };
+  }, [vehicles, maintenances]);
+
+  const isLoading = loadingVehicles || loadingMaintenance || loadingConductores;
+
+  // Función para refrescar todos los datos
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+    queryClient.invalidateQueries({ queryKey: ['maintenances'] });
+    queryClient.invalidateQueries({ queryKey: ['conductores'] });
+  };
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -50,12 +80,12 @@ export default function Dashboard() {
           value={vehicles.length}
           icon={Car}
           gradient="from-blue-500 to-blue-600"
-          trend={`${availableVehicles} disponibles`}
+          trend={`${stats.availableVehicles} disponibles`}
           isLoading={isLoading}
         />
         <StatsCard
-          title="Clientes"
-          value={clients.length}
+          title="Conductores"
+          value={conductores.length}
           icon={Users}
           gradient="from-purple-500 to-purple-600"
           trend="Registrados"
@@ -63,15 +93,15 @@ export default function Dashboard() {
         />
         <StatsCard
           title="En Mantenimiento"
-          value={inMaintenanceCount}
+          value={stats.inMaintenanceCount}
           icon={Wrench}
           gradient="from-orange-500 to-orange-600"
-          trend={`${urgentMaintenance} urgentes`}
+          trend={`${stats.urgentMaintenance} urgentes`}
           isLoading={isLoading}
         />
         <StatsCard
           title="Valor Inventario"
-          value={`$${totalRevenue.toLocaleString()}`}
+          value={`$${stats.totalRevenue.toLocaleString()}`}
           icon={DollarSign}
           gradient="from-green-500 to-green-600"
           trend="Total"
@@ -84,12 +114,20 @@ export default function Dashboard() {
           <VehicleStatusChart vehicles={vehicles} isLoading={isLoading} />
         </div>
         <div>
-          <UpcomingMaintenance maintenances={maintenances} vehicles={vehicles} isLoading={isLoading} />
+          <UpcomingMaintenance
+            maintenances={maintenances}
+            vehicles={vehicles}
+            isLoading={isLoading}
+          />
         </div>
       </div>
 
       <div>
-        <RecentMaintenanceList maintenances={maintenances} vehicles={vehicles} isLoading={isLoading} />
+        <RecentMaintenanceList
+          maintenances={maintenances}
+          vehicles={vehicles}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

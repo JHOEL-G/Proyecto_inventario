@@ -1,13 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Skeleton } from "../ui/skeleton";
 
 const COLORS = {
-  'disponible': '#10B981', 
-  'vendido': '#64748B',    
-  'en_mantenimiento': '#EF4444', 
-  'reservado': '#3B82F6'    
+  'disponible': 'blue',
+  'vendido': '#64748B',
+  'en_mantenimiento': '#EF4444',
+  'reservado': '#3B82F6'
 };
 const STATUS_LABELS = {
   'disponible': 'Disponible',
@@ -18,14 +17,14 @@ const STATUS_LABELS = {
 
 // 1. Mapa inverso para transformar el número del backend a la clave del frontend (string)
 const STATUS_MAP = {
-    0: 'disponible',
-    1: 'vendido',
-    2: 'en_mantenimiento',
-    3: 'reservado'
+  0: 'disponible',
+  1: 'vendido',
+  2: 'en_mantenimiento',
+  3: 'reservado'
 };
 
 export default function VehicleStatusChart({ vehicles, isLoading }) {
-// ... (código de loading)
+  // ... (código de loading)
 
   // Paso 1: Transformar los estados numéricos (si existen) a strings legibles
   const vehiclesWithMappedStatus = vehicles.map(v => ({
@@ -44,14 +43,14 @@ export default function VehicleStatusChart({ vehicles, isLoading }) {
   // 3. Mapear los conteos a la estructura de datos del gráfico
   const chartData = Object.entries(statusCounts).map(([status, count]) => ({
     // 'status' aquí ya es el string (ej: 'en_mantenimiento')
-    name: STATUS_LABELS[status] || status, 
+    name: STATUS_LABELS[status] || status,
     value: count,
     // Si el estado es 'en_mantenimiento', buscará COLORS['en_mantenimiento']
     color: COLORS[status] || '#64748B' // Usamos un gris como fallback
   }));
 
   // ... (código de renderizado)
-  
+
   return (
     <Card className="shadow-lg border-slate-200 bg-white/80 backdrop-blur-sm">
       <CardHeader className="border-b border-slate-100">
@@ -66,7 +65,7 @@ export default function VehicleStatusChart({ vehicles, isLoading }) {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} 
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
@@ -76,7 +75,7 @@ export default function VehicleStatusChart({ vehicles, isLoading }) {
                 ))}
               </Pie>
               {/* Tooltip y Legend funcionarán correctamente con 'name' como string */}
-              <Tooltip formatter={(value, name) => [value, name]} /> 
+              <Tooltip formatter={(value, name) => [value, name]} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>

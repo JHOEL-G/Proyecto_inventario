@@ -2,8 +2,8 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit, Trash2, MapPin, Gauge, User, Car } from "lucide-react";
 
-const API_BASE_URL = "http://cars.financialsoft.site";
-const FALLBACK_IMAGE_URL = "https://placehold.co/600x400/CCCCCC/333333?text=Sin+Foto";
+const API_BASE_URL = import.meta.env.VITE_DOC_URL || "https://cars.financialsoft.site";
+const FALLBACK_IMAGE_URL = import.meta.env.VITE_FALLBACK_IMAGE || "/images/fallback.png";
 
 const Button = React.forwardRef(({ className, variant, size, ...props }, ref) => {
   const baseClasses = "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
@@ -58,6 +58,7 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
     e.target.src = FALLBACK_IMAGE_URL;
   };
 
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
@@ -97,8 +98,20 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
           const statusConfig = STATUS_CONFIG[normalizedStatus];
           const clientName = getClientName(vehicle.owner_id);
 
-          const imagePath = vehicle.imageUrl || vehicle.image_url;
-          const fullImageUrl = imagePath && imagePath !== "/" ? `${API_BASE_URL}${imagePath}` : FALLBACK_IMAGE_URL;
+          // Cambiar en VehicleGrid.jsx:
+          const imagePath =
+            vehicle.PrimaryImage?.url ||
+            vehicle.detailedImages?.[0]?.url || // <-- CORRECCIÓN AQUÍ
+            vehicle.imageUrl || API_BASE_URL;
+
+          const fullImageUrl = imagePath
+            ? (
+              imagePath.startsWith('http')
+                ? imagePath.replace("localhost:7110", "cars.financialsoft.site") // <- cambio crítico
+                : (imagePath.startsWith('/') ? imagePath : `${API_BASE_URL}${imagePath}`)
+            )
+            : FALLBACK_IMAGE_URL;
+
 
           const salePrice = vehicle.salePrice || vehicle.sale_price || 0;
           const formattedPrice = formatCurrency(parseFloat(salePrice) || 0);
@@ -118,9 +131,10 @@ export default function VehicleGrid({ vehicles, isLoading, onEdit, onDelete, cli
                   <img
                     src={fullImageUrl}
                     onError={handleImageError}
-                    alt={`${vehicle.brandName || vehicle.brandId} ${vehicle.modelName || vehicle.modelId}`}
+                    alt={`${vehicle.brandName} ${vehicle.modelName}`}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
+
                   <div className="absolute bottom-0 left-0 w-full p-2 bg-black/40 backdrop-blur-sm">
                     <Badge variant="default" className={`!rounded-lg ${statusConfig.color} text-sm`}>
                       {statusConfig.label}

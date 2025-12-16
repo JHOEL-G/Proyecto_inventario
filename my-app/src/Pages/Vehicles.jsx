@@ -44,17 +44,34 @@ export default function Vehicles() {
     },
   });
 
-  const { data: brandsList = [] } = useQuery({
+  // Cargar marcas desde la API
+  const { data: brandsListRaw = [] } = useQuery({
     queryKey: ['brands'],
     queryFn: () => base44.entities.Brand.list(),
   });
 
-  const { data: modelsList = [] } = useQuery({
-  queryKey: ['models'],
-  queryFn: () => base44.entities.Brand.getModels(selectedBrandId || 0), // si quieres filtrar por marca
-});
+  // Cargar modelos desde la API
+  const { data: modelsListRaw = [] } = useQuery({
+    queryKey: ['models'],
+    queryFn: () => base44.entities.Model.list(),
+  });
 
+  // Mapear las marcas al formato esperado por VehicleDialog { id, name }
+  const brandsList = brandsListRaw.map(b => ({
+    id: b.marcaId,
+    name: b.marca
+  }));
 
+  // Mapear los modelos al formato esperado por VehicleDialog { id, name, marcaId }
+  const modelsList = modelsListRaw.map(m => ({
+    id: m.modeloId,
+    name: m.modelo,
+    marcaId: m.marcaId  // Mantener la relación con la marca
+  }));
+  const { data: colorsList = [] } = useQuery({
+    queryKey: ['colors'],
+    queryFn: () => base44.entities.Vehicle.getColorOptions(),
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Vehicle.delete(id),
@@ -64,13 +81,13 @@ export default function Vehicles() {
   });
 
   const handleSave = (vehicleData) => {
-  if (selectedVehicle) {
-    const dataWithId = { ...vehicleData, id: selectedVehicle.id };
-    updateMutation.mutate({ id: selectedVehicle.id, data: dataWithId });
-  } else {
-    createMutation.mutate(vehicleData);
-  }
-};
+    if (selectedVehicle) {
+      const dataWithId = { ...vehicleData, id: selectedVehicle.id };
+      updateMutation.mutate({ id: selectedVehicle.id, data: dataWithId });
+    } else {
+      createMutation.mutate(vehicleData);
+    }
+  };
 
   const handleEdit = (vehicle) => {
     setSelectedVehicle(vehicle);
@@ -87,22 +104,20 @@ export default function Vehicles() {
     setSelectedVehicle(null);
     setIsDialogOpen(true);
   };
-  
+
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch =
-    vehicle.brandName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.modelName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vehicle.licensePlate?.toLowerCase().includes(searchTerm.toLowerCase());
+      vehicle.brandName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.modelName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.serialNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.licensePlate?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
-    filters.status === 'all' || vehicle.status.toString() === filters.status;
+      filters.status === 'all' || vehicle.status.toString() === filters.status;
     const matchesFuel =
-    filters.fuel_type === 'all' || vehicle.fuelType.toString() === filters.fuel_type;
-
+      filters.fuel_type === 'all' || vehicle.fuelType.toString() === filters.fuel_type;
     return matchesSearch && matchesStatus && matchesFuel;
-});
-
+  });
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -113,7 +128,7 @@ export default function Vehicles() {
           </h1>
           <p className="text-slate-600 mt-1">{vehicles.length} vehículos registrados</p>
         </div>
-        <Button 
+        <Button
           onClick={handleAddNew}
           className="bg-gradient-to-r text-gray-50 from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30"
         >
@@ -150,8 +165,9 @@ export default function Vehicles() {
         onSave={handleSave}
         isSaving={createMutation.isPending || updateMutation.isPending}
         clients={clients}
-        brands={brandsList}      // <-- esto es nuevo
+        brands={brandsList}
         models={modelsList}
+        colors={colorsList}
       />
     </div>
   );

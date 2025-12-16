@@ -48,26 +48,23 @@ export default function MaintenanceList({ maintenances, vehicles, isLoading, onE
   // CÓDIGO CORREGIDO PARA MAYOR COMPATIBILIDAD
   const getVehicleInfo = (vehicleId) => {
     if (!vehicles || !Array.isArray(vehicles)) {
-      console.log('Vehicles no definido o no es array', vehicles);
       return 'Vehículo desconocido';
     }
 
-    const vehicle = vehicles.find(v => v.id === vehicleId);
+    const vehicle = vehicles.find(v => v.Id === vehicleId); // <-- Id mayúscula
 
     if (!vehicle) {
-      console.log('No se encontró vehículo para vehicleId:', vehicleId);
       return 'Vehículo desconocido';
     }
 
-    const brand = (vehicle.brand || vehicle.brandName || 'Marca').toString();
-    const model = (vehicle.model || vehicle.modelName || 'Modelo').toString();
-    const identifier = (vehicle.license_plate || vehicle.licensePlate || vehicle.serial_number || 'S/N').toString();
+    const brand = (vehicle.MarcaNombre || 'Marca').toString();
+    const model = (vehicle.ModeloNombre || 'Modelo').toString();
+    const identifier = (vehicle.LicensePlate || vehicle.SerialNumber || 'S/N').toString();
 
-    // Log de todos los datos usados
-    console.log('Vehicle info:', { brand, model, identifier });
 
     return `${brand} ${model} (${identifier})`;
   };
+
 
 
 

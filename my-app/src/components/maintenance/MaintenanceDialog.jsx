@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 export default function MaintenanceDialog({ open, onOpenChange, maintenance, vehicles, onSave, isSaving }) {
   const [formData, setFormData] = useState({
     vehicle_id: '',
-    maintenance_type: 'preventivo', // <-- vacio
+    maintenance_type: '', // <-- vacio
     service_date: new Date().toISOString().split('T')[0],
     next_service_date: '',
     description: '',
@@ -77,17 +77,17 @@ export default function MaintenanceDialog({ open, onOpenChange, maintenance, veh
 
     const backendData = {
       id: dataToSave.id,
-      vehicle_id: parseInt(dataToSave.vehicle_id) || 0,
-      maintenance_type: mapMaintenanceType(dataToSave.maintenance_type),
-      service_date: dataToSave.service_date,
-      next_service_date: dataToSave.next_service_date,
+      vehicleId: parseInt(dataToSave.vehicle_id) || 0,
+      maintenanceType: mapMaintenanceType(dataToSave.maintenance_type),
+      serviceDate: dataToSave.service_date,
+      nextServiceDate: dataToSave.next_service_date,
       description: dataToSave.description || '',
-      parts_replaced: dataToSave.parts_replaced || '',
+      partsReplaced: dataToSave.parts_replaced || '',
       cost: parseFloat(dataToSave.cost) || 0,
       mechanic: dataToSave.mechanic || '',
-      mileage_at_service: parseInt(dataToSave.mileage_at_service) || 0,
-      status: dataToSave.status,
-      priority: dataToSave.priority,
+      mileageAtService: parseInt(dataToSave.mileage_at_service) || 0,
+      status: capitalizeFirst(dataToSave.status),
+      priority: capitalizeFirst(dataToSave.priority)
     };
 
     onSave(backendData);
